@@ -1,0 +1,6 @@
+Model,Size (KB),Size (MB),Accuracy,F1-Score,Efficiency
+Logistic Regression,1.4,0.001,99.7,0.997,0.712143
+XGBoost,691.6,0.675,99.85,0.9985,0.001444
+Random Forest,847.7,0.828,100.0,1.0,0.00118
+RF Tuned,847.7,0.828,100.0,1.0,0.00118
+RF (8 features),1436.6,1.403,99.7,0.997,0.000694

@@ -22,13 +22,35 @@ This project builds a **Predictive Maintenance system** that detects bearing fau
 
 ## 🎯 Results
 
+### Internal Validation (train/test split)
+
 | Model | Test Accuracy | Weighted F1 | CV F1 (5-fold) |
 |---|---|---|---|
 | **Random Forest** | **100.00%** | **1.0000** | **0.9977 ± 0.0014** |
 | XGBoost | 99.85% | 0.9985 | 0.9970 ± 0.0015 |
 | Logistic Regression | 99.70% | 0.9970 | 0.9940 ± 0.0032 |
 
-> **Honest note:** The train/test split was performed at window level with 50% overlap, which inflates test scores slightly. The 5-fold cross-validation score of **F1 = 0.9977** is the more conservative and reliable estimate. Published benchmarks on the same CWRU dataset report F1 = 0.96–0.99.
+> **Note:** Train/test split was at window level with 50% overlap, which inflates scores slightly. The 5-fold CV score of F1 = 0.9977 is the more honest estimate.
+
+### External Validation (73 unseen files — never seen during training)
+
+Testing on files from 4 load conditions (0HP, 1HP, 2HP, 3HP) and 2 sampling rates (12kHz native + 48kHz downsampled):
+
+| Category | Accuracy |
+|---|---|
+| **Overall (73 files)** | **86.3%** |
+| 12kHz native files | 91.7% |
+| 48kHz downsampled files | 81.1% |
+| Normal class | 100.0% |
+| Ball class | 95.8% |
+| Inner Race class | 91.7% |
+| Outer Race class | 68.2% |
+| 0.007" fault diameter | 100.0% |
+| 0.014" fault diameter | 57.1% ← known limitation |
+| 0.021" fault diameter | 95.5% |
+| 0.028" fault diameter | 100.0% |
+
+**Key finding:** All failures at 0.014" diameter — a transition point where fault energy is present but spectral signature overlaps between fault types. The model never produces a false alarm on healthy bearings across any condition (100% Normal accuracy).
 
 ---
 
@@ -209,6 +231,7 @@ Top features by SHAP (Random Forest, global):
 
 ## ⚠️ Limitations
 
+- **0.014" fault diameter boundary:** 9 of 10 external validation failures involve this diameter. At 0.014" the fault energy is present but not yet spectrally distinctive enough to separate Outer Race from Ball. Fix: include OR014 and IR014 from multiple load conditions in Phase 2 training.
 - **Window-level splitting:** overlapping windows from the same file appear in both train and test sets. A file-level holdout would give a more conservative accuracy estimate.
 - **Single operating condition:** all training data from 1HP load. Validation on 0HP files produced 0% accuracy — the model does not currently generalize across load conditions. Phase 2 fix: multi-load training data.
 - **Single bearing type:** CWRU bearing dimensions determine fault characteristic frequencies. Different bearing models will have different frequencies.
